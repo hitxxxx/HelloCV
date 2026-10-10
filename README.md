@@ -6,3 +6,4 @@
 - 安装 Node.js 与 PM2：`sudo apt install nodejs npm`...
  语雀学习笔记（链接汇总）
 - [Linux学习与实践记录（语雀）]https://www.yuque.com/g/yuqueyonghu-8qsy6m/vkceqs/collaborator/join?token=agDjvvPviBf3dKcU# 邀你加入知识库「默认知识库」(可阅读)
+第二篇语雀文档是git计算器的练习https://www.yuque.com/yuqueyonghu-8qsy6m/dgvebc?#《git training》
