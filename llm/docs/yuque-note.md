@@ -163,12 +163,45 @@ $ python play_game.py --rounds 10 --api-base-url http://127.0.0.1:8801 --api-key
 
 ```text
 $ $env:DEEPSEEK_API_KEY="sk-..."     # 已充值 1 元
-$ python play_game.py --rounds 10 --strategy counter
-【截图：真实 API 对局输出】
+$ python play_game.py --rounds 10 --strategy random --seed 2026
+对局开始：10 轮，对手策略=random，模式=deepseek-flash
+
+第  1 轮  模型=rock     对手=rock(random)     平局
+第  2 轮  模型=paper    对手=scissor(random)  模型输
+第  3 轮  模型=paper    对手=paper(random)    平局
+第  4 轮  模型=paper    对手=paper(random)    平局
+第  5 轮  模型=scissor  对手=paper(random)    模型赢
+第  6 轮  模型=scissor  对手=rock(random)     模型输
+第  7 轮  模型=scissor  对手=rock(random)     模型输
+第  8 轮  模型=paper    对手=paper(random)    平局
+第  9 轮  模型=scissor  对手=paper(random)    模型赢
+第 10 轮  模型=scissor  对手=paper(random)    模型赢
+
+共 10 轮：模型赢 3 / 平 4 / 输 3（其中本地兜底 0 轮）
 ```
 
-> 说明：默认模型 `deepseek-flash`，`temperature=0.2`，`max_tokens=256`，
+同一份 CLI 换成样例输入（7 行，含 1 行坏输入）也能稳定输出 7 行合法决策：
+
+```text
+$ python run_gateway.py --input samples/requests.jsonl --quiet
+{"time":"2026-01-01T00:00:00+00:00","option":"rock"}
+{"time":"2026-01-01T00:00:01+00:00","option":"paper"}
+{"time":"2026-01-01T00:00:02+00:00","option":"scissor"}
+{"time":"2026-01-01T00:00:03+00:00","option":"rock"}
+{"time":"2026-10-18T06:20:09.966144+00:00","option":"scissor"}
+{"time":"2026-10-18T06:20:09.966144+00:00","option":"rock"}
+{"time":"2026-01-01T00:00:05+00:00","option":"paper"}
+处理 7 行：直接可用 5 / 已修正 1 / 本地兜底 1 / 输入非法 1
+```
+
+> 第 5、6 行请求里没有 `time`，模型也没给出可用时间，网关按协议补了 `now_iso()`；
+> 最后一行是坏输入（不是 JSON），**没有转发给上游**，直接本地兜底，所以统计里 `输入非法 1`。
+
+> 默认模型 `deepseek-flash`（DeepSeek-V4.1-Flash），`temperature=0.2`，`max_tokens=256`，
 > `response_format={"type":"json_object"}`，`thinking={"type":"disabled"}`（省时间、省 token）。
+> 每轮 0.8~1.1 秒，10 轮对话成本不到 1 分钱。
+
+【截图：真实 API 对局输出（含 stderr 的耗时与统计行）】
 
 ## 7. 如果继续做（扩展思路）
 

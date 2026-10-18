@@ -93,6 +93,28 @@ python selfcheck.py          # 应为「所有 TODO 都实现完了」+ 93 passe
 
 胜负：`rock` 赢 `scissor`，`scissor` 赢 `paper`，`paper` 赢 `rock`。
 
+## 运行效果（真实 DeepSeek 官方 API）
+
+```text
+$ python play_game.py --rounds 10 --strategy random --seed 2026
+对局开始：10 轮，对手策略=random，模式=deepseek-flash
+
+第  1 轮  模型=rock     对手=rock(random)     平局
+第  5 轮  模型=scissor  对手=paper(random)    模型赢
+...
+共 10 轮：模型赢 3 / 平 4 / 输 3（其中本地兜底 0 轮）
+```
+
+```text
+$ python run_gateway.py --input samples/requests.jsonl --quiet
+{"time":"2026-01-01T00:00:00+00:00","option":"rock"}
+...
+处理 7 行：直接可用 5 / 已修正 1 / 本地兜底 1 / 输入非法 1
+```
+
+坏输入那行**没有转发上游**，直接本地兜底；空回复、只有思维链、被截断这三种"200 但没答案"
+会被识别成可重试错误。
+
 ## 设计要点
 
 1. **容错分三级，而不是只靠 `json.loads`**：真实模型会套 markdown 围栏、夹带自然语言、
