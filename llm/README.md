@@ -139,6 +139,16 @@ python selfcheck.py           # TODO 检查 + 全套测试
 覆盖四层：容错层 20 个、规则层 25 个、传输层 17 个、编排层 15 个（含真 HTTP 端到端），
 另有对局逻辑与采样一致性测试。
 
+![93 个测试全部通过](docs/screenshots/05-pytest-green.png)
+
+## 运行截图
+
+| 假上游联调（坏回复全部接住） | 真实 DeepSeek 对局 |
+| --- | --- |
+| ![mock](docs/screenshots/02-mock-upstream.png) | ![real](docs/screenshots/03-real-deepseek.png) |
+
+更多截图（selfcheck 待办清单、关键代码）见 [`docs/screenshots/`](docs/screenshots/)。
+
 ## 常见问题
 
 | 现象 | 原因 / 处理 |

@@ -1,9 +1,8 @@
 # LLM 实践任务：石头剪刀布决策网关
 
-> 这是一篇可以直接粘贴到语雀的笔记草稿。发布前请：
-> 1. 把 `【截图：…】` 换成你自己的截图（终端输出、代码、测试结果）；
-> 2. 把末尾「真实 API 联调」一节的输出换成你自己机器上的实际结果；
-> 3. 在文末补上仓库链接。
+> 这是一篇可以直接粘贴到语雀的笔记草稿。文中已放好 5 张配图（`docs/screenshots/`）：
+> 自检清单、假上游联调、真实对局、关键代码、测试全绿。
+> 发布前请：1）按需换成你自己终端的截图；2）在文末补上仓库与语雀链接。
 
 ## 0. 一句话总结
 
@@ -35,7 +34,7 @@ python -m venv .venv && . .venv/Scripts/activate     # Linux: source .venv/bin/a
 pip install -r requirements.txt
 ```
 
-【截图：pip install 完成】
+（可选：在这里放一张 `pip install -r requirements.txt` 完成的截图）
 
 领 Key 并充值 1 元后，把 Key 放进环境变量（**不写进代码**）：
 
@@ -43,7 +42,7 @@ pip install -r requirements.txt
 $env:DEEPSEEK_API_KEY="sk-..."     # Linux/macOS: export DEEPSEEK_API_KEY=sk-...
 ```
 
-【截图：环境变量已设置（Key 打码）】
+（可选：放一张环境变量已设置、Key 打码的截图）
 
 ## 3. 和 AI 协作的过程
 
@@ -61,7 +60,7 @@ $env:DEEPSEEK_API_KEY="sk-..."     # Linux/macOS: export DEEPSEEK_API_KEY=sk-...
 5. **用假上游做压力测试**：`mock_llm_server.py` 预设了 12 种坏回复（围栏、废话、`SPOCK`、
    空回复、缺括号……），跑一遍就知道容错到底有没有生效。
 
-【截图：selfcheck 列出 10 个 TODO】
+![selfcheck 列出 10 个未实现的函数](screenshots/01-selfcheck-todo.png)
 
 ## 4. 核心设计
 
@@ -106,7 +105,7 @@ if status in RETRY_STATUS: 退避重试                 # 429 / 5xx
 `time` 是对局的关联键，必须由网关这个**可信边界**裁决：请求有就用请求的，没有才用模型的，
 再没有才用 `now_iso()` —— 每种情况都记一条说明，方便事后复盘。
 
-【截图：json_guard.py / rules.py 的关键代码，带注释】
+![关键代码：handle_request 的编排与兜底](screenshots/04-key-code.png)
 
 ## 5. 踩坑记录
 
@@ -120,7 +119,7 @@ if status in RETRY_STATUS: 退避重试                 # 429 / 5xx
 | 6 | 字符串里的 `}` 会骗过括号配对 | `{"reason": "a } b"}` 被提前截断 | 维护 `in_string` / `escaped` 状态 |
 | 7 | 出口字段会"漏" | 模型多返回 `reason`、`confidence` | `build_decision` 只构造两个键 + `is_valid_decision` 自检 |
 
-【截图：pytest 93 passed】
+![93 个测试全部通过](screenshots/05-pytest-green.png)
 
 ## 6. 联调结果
 
@@ -148,7 +147,7 @@ $ python run_gateway.py --api-base-url http://127.0.0.1:8801 --api-key test \
 处理 7 行：直接可用 3 / 已修正 1 / 本地兜底 3 / 输入非法 1
 ```
 
-【截图：假上游联调输出（含统计行）】
+![假上游联调：坏回复被逐条接住](screenshots/02-mock-upstream.png)
 
 ### 6.3 完整对局（假上游，10 轮）
 
@@ -157,28 +156,33 @@ $ python play_game.py --rounds 10 --api-base-url http://127.0.0.1:8801 --api-key
 共 10 轮：模型赢 2 / 平 4 / 输 4（其中本地兜底 0 轮）
 ```
 
-【截图：对局输出】
+（6.4 的真实对局截图里也能看到同一张 `play_game.py` 的表格输出）
 
 ### 6.4 真实 DeepSeek 官方 API
 
 ```text
 $ $env:DEEPSEEK_API_KEY="sk-..."     # 已充值 1 元
-$ python play_game.py --rounds 10 --strategy random --seed 2026
-对局开始：10 轮，对手策略=random，模式=deepseek-flash
+$ python play_game.py --rounds 10 --strategy counter
+对局开始：10 轮，对手策略=counter，模式=deepseek-flash
 
-第  1 轮  模型=rock     对手=rock(random)     平局
-第  2 轮  模型=paper    对手=scissor(random)  模型输
-第  3 轮  模型=paper    对手=paper(random)    平局
-第  4 轮  模型=paper    对手=paper(random)    平局
-第  5 轮  模型=scissor  对手=paper(random)    模型赢
-第  6 轮  模型=scissor  对手=rock(random)     模型输
-第  7 轮  模型=scissor  对手=rock(random)     模型输
-第  8 轮  模型=paper    对手=paper(random)    平局
-第  9 轮  模型=scissor  对手=paper(random)    模型赢
-第 10 轮  模型=scissor  对手=paper(random)    模型赢
+第  1 轮  模型=rock  对手=rock(counter)  平局
+第  2 轮  模型=paper  对手=paper(counter)  平局
+第  3 轮  模型=scissor  对手=scissor(counter)  平局
+第  4 轮  模型=paper  对手=rock(counter)  模型赢
+第  5 轮  模型=paper  对手=scissor(counter)  模型输
+第  6 轮  模型=paper  对手=scissor(counter)  模型输
+第  7 轮  模型=paper  对手=scissor(counter)  模型输
+第  8 轮  模型=paper  对手=scissor(counter)  模型输
+第  9 轮  模型=rock  对手=scissor(counter)  模型赢
+第 10 轮  模型=paper  对手=paper(counter)  平局
 
-共 10 轮：模型赢 3 / 平 4 / 输 3（其中本地兜底 0 轮）
+共 10 轮：模型赢 2 / 平 4 / 输 4（其中本地兜底 0 轮）
 ```
+
+这一局的本地对手用 `counter` 策略：每轮都出「能赢模型上一手」的拳。模型在第 4 轮赢了之后
+改用 `paper`，对手马上用 `scissor` 连赢四轮——正好说明网关把真实决策传出去了，而不是自己乱出。
+
+![真实 DeepSeek 对局（10 轮，本地兜底 0 轮）](screenshots/03-real-deepseek.png)
 
 同一份 CLI 换成样例输入（7 行，含 1 行坏输入）也能稳定输出 7 行合法决策：
 
@@ -200,8 +204,6 @@ $ python run_gateway.py --input samples/requests.jsonl --quiet
 > 默认模型 `deepseek-flash`（DeepSeek-V4.1-Flash），`temperature=0.2`，`max_tokens=256`，
 > `response_format={"type":"json_object"}`，`thinking={"type":"disabled"}`（省时间、省 token）。
 > 每轮 0.8~1.1 秒，10 轮对话成本不到 1 分钱。
-
-【截图：真实 API 对局输出（含 stderr 的耗时与统计行）】
 
 ## 7. 如果继续做（扩展思路）
 
