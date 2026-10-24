@@ -76,7 +76,9 @@ bash ../scripts/verify_stack.sh                                      # 一键验
 
 ## 环境与工具链记录
 
-- ROS2：使用一键脚本安装（Ubuntu 22.04 + **Humble**；Jazzy 兼容性说明见 [`ros2/README.md`](ros2/README.md#兼容性jazzy--ubuntu-2404)）
+- ROS2：目标环境 Ubuntu 22.04 + **Humble**（安装与验证步骤见 [`ros2/README.md`](ros2/README.md)，
+  Jazzy 兼容性说明见 [该文"兼容性"一节](ros2/README.md#兼容性jazzy--ubuntu-2404)）；
+  本机是 Windows，**没有装 ROS2**，见文末「已知限制」
 - 基础工具：`sudo apt install nmap ssh git ...`
 - Node.js 与 PM2：`sudo apt install nodejs npm` ...
 
