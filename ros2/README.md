@@ -293,6 +293,10 @@ python3 scripts/check_braces.py          # 16 个文件全部配平
 
 ## 语雀笔记
 
-七篇正文在 [`docs/yuque/`](docs/yuque/)，入口是
-[`00-索引与阅读顺序.md`](docs/yuque/00-索引与阅读顺序.md)。语雀上的公开链接汇总见仓库根
-[`README.md`](../README.md) 的"语雀笔记汇总"表。
+**已发布（公开可访问，一篇覆盖全部七个知识点）**：<https://www.yuque.com/yuqueyonghu-8qsy6m/vr3cga/ahtegobxnmsz2q2h>
+
+源文件是 [`docs/ROS2学习笔记.md`](docs/ROS2学习笔记.md)（718 行 · 14 张真机截图 · 34 段代码）。
+
+想深读的话，七篇分篇正文在 [`docs/yuque/`](docs/yuque/)，入口是
+[`00-索引与阅读顺序.md`](docs/yuque/00-索引与阅读顺序.md)；也有七篇合并全量版
+[`docs/ROS2学习笔记-全一篇.md`](docs/ROS2学习笔记-全一篇.md)。

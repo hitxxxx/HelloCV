@@ -50,6 +50,9 @@ python play_game.py --rounds 10         # 和 DeepSeek 玩 10 轮
 串成一条链路，覆盖 **Topic / Service / Parameter / TF / RViz / launch / LifecycleNode** 七个知识点。
 检测部分**不用 OpenCV**（阈值 + 一阶矩质心，20 行像素循环），依赖只有 `rclcpp` 家族。
 
+> 📓 **语雀笔记（公开可访问）：<https://www.yuque.com/yuqueyonghu-8qsy6m/vr3cga/ahtegobxnmsz2q2h>**
+> —— 一篇讲完上面七个知识点，包含 14 张真机截图、8 条踩坑记录与完整复现步骤。
+
 ```bash
 cd ros2/ros2_ws
 source /opt/ros/humble/setup.bash
@@ -71,7 +74,9 @@ bash ../scripts/verify_stack.sh                                      # 一键验
 | 受管节点 | `ros2 lifecycle set /mission_node activate` |
 
 - 详细说明：[`ros2/README.md`](ros2/README.md)
-- 语雀笔记（七篇，Markdown 源文件）：[`ros2/docs/yuque/`](ros2/docs/yuque/)，入口是
+- 语雀笔记（已发布，一篇）：<https://www.yuque.com/yuqueyonghu-8qsy6m/vr3cga/ahtegobxnmsz2q2h>
+- 笔记的 Markdown 源文件：[`ros2/docs/ROS2学习笔记.md`](ros2/docs/ROS2学习笔记.md)（可粘进语雀再发一份）；
+  分篇深读版在 [`ros2/docs/yuque/`](ros2/docs/yuque/)，入口是
   [`00-索引与阅读顺序.md`](ros2/docs/yuque/00-索引与阅读顺序.md)
 
 ## 环境与工具链记录
@@ -89,27 +94,19 @@ bash ../scripts/verify_stack.sh                                      # 一键验
 | Linux 学习与实践记录 | <https://www.yuque.com/g/yuqueyonghu-8qsy6m/vkceqs/collaborator/join?token=agDjvvPviBf3dKcU> | — |
 | 《git traning》 | <https://www.yuque.com/yuqueyonghu-8qsy6m/dgvebc/> | — |
 | LLM 实践任务：决策网关实现笔记 | 待发布 | [`llm/docs/yuque-note.md`](llm/docs/yuque-note.md) |
-| ROS2 · 00 总索引与阅读顺序 | 待发布 | [`00-索引与阅读顺序.md`](ros2/docs/yuque/00-索引与阅读顺序.md) |
-| ROS2 · 01 工作空间与包结构 | 待发布 | [`01-工作空间与包结构.md`](ros2/docs/yuque/01-工作空间与包结构.md) |
-| ROS2 · 02 C++ 节点与生命周期 | 待发布 | [`02-C++节点与生命周期.md`](ros2/docs/yuque/02-C++节点与生命周期.md) |
-| ROS2 · 03 命令行工具实操 | 待发布 | [`03-命令行工具实操.md`](ros2/docs/yuque/03-命令行工具实操.md) |
-| ROS2 · 04 Topic 与 QoS | 待发布 | [`04-Topic与QoS.md`](ros2/docs/yuque/04-Topic与QoS.md) |
-| ROS2 · 05 Service 与参数 | 待发布 | [`05-Service与参数.md`](ros2/docs/yuque/05-Service与参数.md) |
-| ROS2 · 06 TF 与 RViz | 待发布 | [`06-TF与RViz.md`](ros2/docs/yuque/06-TF与RViz.md) |
-| ROS2 · 07 launch 文件 | 待发布 | [`07-launch文件.md`](ros2/docs/yuque/07-launch文件.md) |
+| **ROS2 学习笔记（一篇，七个知识点全覆盖）** | <https://www.yuque.com/yuqueyonghu-8qsy6m/vr3cga/ahtegobxnmsz2q2h> | [`ros2/docs/ROS2学习笔记.md`](ros2/docs/ROS2学习笔记.md) |
+| ROS2 · 分篇深读（00~07，可选） | 未发布 | [`ros2/docs/yuque/`](ros2/docs/yuque/) |
 
-> **只想发一篇的话**：用 [`ros2/docs/ROS2学习笔记.md`](ros2/docs/ROS2学习笔记.md)
-> （718 行 · 14 张图 · 34 段代码，一篇讲完"装环境 → 第一个节点 → 话题/QoS → 服务 → 参数 → TF/RViz → launch → 生命周期"，
-> 外加 8 个真机踩坑表和复现步骤）。想看得更细，另有合并全量版
-> [`ros2/docs/ROS2学习笔记-全一篇.md`](ros2/docs/ROS2学习笔记-全一篇.md)（2536 行 · 17 张图）。
+> **ROS2 这篇已经发布**：<https://www.yuque.com/yuqueyonghu-8qsy6m/vr3cga/ahtegobxnmsz2q2h>
+> （718 行 · 14 张图 · 34 段代码，一篇讲完"装环境 → 第一个节点 → 话题/QoS → 服务 → 参数 →
+> TF/RViz → launch → 生命周期"，外加 8 个真机踩坑表和复现步骤）。
 >
-> **笔记已经整理成"打开就能整篇粘贴"的形态**：文中的图片、跨篇链接全部是
-> `cdn.jsdelivr.net` / `github.com` 的**绝对地址**，粘进语雀后图片会由语雀自己抓取，
-> 不需要再一张张上传。
+> 想看得更细，仓库里另有两份 Markdown：
+> [`ROS2学习笔记-全一篇.md`](ros2/docs/ROS2学习笔记-全一篇.md)（七篇合并，2536 行 · 17 张图）与
+> [`ros2/docs/yuque/`](ros2/docs/yuque/) 下的分篇版。
 >
-> 发布步骤（每篇都一样）：新建语雀文档 → 把 `ros2/docs/yuque/` 下对应的 `.md` **全文**粘贴 →
-> 右上角「分享」设为**互联网可见** → 复制链接，把上表「待发布」替换掉。
-> **务必用无痕窗口打开一次确认不用登录也能看**，否则按 0 分算。
+> 这些 Markdown 都整理成了"打开就能整篇粘贴"的形态：图片、跨篇链接全是绝对地址，
+> 粘进语雀后图片会由语雀自动抓取，不需要一张张上传。
 
 ## 已知限制
 
