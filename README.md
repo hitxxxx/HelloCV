@@ -98,8 +98,11 @@ bash ../scripts/verify_stack.sh                                      # 一键验
 | ROS2 · 06 TF 与 RViz | 待发布 | [`06-TF与RViz.md`](ros2/docs/yuque/06-TF与RViz.md) |
 | ROS2 · 07 launch 文件 | 待发布 | [`07-launch文件.md`](ros2/docs/yuque/07-launch文件.md) |
 
+> **只想发一篇的话**：用 [`ros2/docs/ROS2学习笔记-全一篇.md`](ros2/docs/ROS2学习笔记-全一篇.md)
+> （七篇合并版 · 2536 行 · 17 张图 · 102 段代码，粘一次就够，图片同样走 CDN 绝对地址）。
+>
 > **笔记已经整理成"打开就能整篇粘贴"的形态**：文中的图片、跨篇链接全部是
-> `raw.githubusercontent.com` / `github.com` 的**绝对地址**，粘进语雀后图片会由语雀自己抓取，
+> `cdn.jsdelivr.net` / `github.com` 的**绝对地址**，粘进语雀后图片会由语雀自己抓取，
 > 不需要再一张张上传。
 >
 > 发布步骤（每篇都一样）：新建语雀文档 → 把 `ros2/docs/yuque/` 下对应的 `.md` **全文**粘贴 →
