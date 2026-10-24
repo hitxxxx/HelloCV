@@ -1,0 +1,87 @@
+# =============================================================================
+# HelloCV · 参数文件
+# =============================================================================
+# ROS2 参数文件的三个硬性格式要求（新手 90% 的错误都在这里）：
+#   1. 节点名 → ros__parameters 是**两层**嵌套，少一层都读不到；
+#   2. 节点名必须和运行时的**全限定名**一致：
+#        根命名空间写 camera_node 就行；
+#        带命名空间就得写 /robot1/camera_node；
+#        想一把抓，用 /** 通配（见文件末尾示例）。
+#   3. 缩进只能用空格，不能用 Tab；冒号后面必须有一个空格。
+#
+# 使用方式：
+#   ros2 run hello_cv_cpp camera_node --ros-args --params-file config/params.yaml
+#   或在 launch 里 parameters=[<这个文件的路径>]
+# =============================================================================
+
+camera_node:
+  ros__parameters:
+    # ---- 图像尺寸与节奏 ----
+    width: 320
+    height: 240
+    fps: 30.0              # double！写成 30 会变成 int，覆盖 double 参数时会报类型错
+    # ---- 合成目标（高斯亮斑）----
+    blob_radius: 26.0
+    omega: 0.8             # 角速度 rad/s，决定目标绕圈快慢
+    orbit_radius: 70.0     # 绕行半径（像素）
+    # center_x / center_y 故意不写：代码里默认取 width/2、height/2，
+    # 由 YAML 显式写死反而会在改分辨率时忘改、目标跑偏。
+    # ---- 噪声与背景 ----
+    noise_sigma: 6.0
+    background: 28
+    # ---- 坐标系与 QoS ----
+    frame_id: camera_link
+    qos_reliability: reliable
+    seed: 42
+
+detector_node:
+  ros__parameters:
+    # 阈值决定"多亮算目标"。背景 28 + 噪声 σ=6（极值约 28+3σ≈46），亮斑平台 255，
+    # 180 远高于噪声、又落在过渡带里，所以面积对阈值敏感，适合拿来做参数实验。
+    intensity_threshold: 180
+    min_area: 200          # 面积小于这个数当噪声（斑点、压缩噪点）
+    max_area: 50000        # 面积大于这个数当"整幅过曝"，不要
+    # 期望面积：半径 26、过渡带宽 13 的亮斑在阈值 180 下的实测面积 ≈ 1018
+    #（用 scripts/simulate_camera.py 复算过；1400+ 的话说明阈值被调低了）
+    expected_area: 1020.0
+    qos_reliability: reliable
+
+tracker_node:
+  ros__parameters:
+    # alpha 越小越平滑、越迟钝；0.35 对应约 3 帧的时间常数，抖动小、跟随也不拖
+    alpha: 0.35
+    # 像素→米：0.005 m/px 即 320 像素宽 ≈ 1.6 米视场，像个"看桌面"的小相机
+    meters_per_pixel: 0.005
+    frame_id: map          # TF 的父坐标系
+    target_frame: target   # TF 的子坐标系（被跟踪目标的名字）
+    vertical_flip: true    # 图像 y 轴向下、世界 z 轴向上，不翻会上下颠倒
+    publish_marker: true
+    marker_diameter: 0.12
+    image_width: 320
+    image_height: 240
+    mode: ema              # ema = 平滑跟踪；raw = 直通（用来对比平滑效果）
+
+tf_lookup_node:
+  ros__parameters:
+    target_frame: map
+    source_frame: target
+    rate_hz: 1.0           # 1Hz 就够，查太快只会刷屏
+
+mission_node:
+  ros__parameters:
+    mission_name: hello_cv_vision
+
+# 下面这段是"直接 ros2 run 起参数演示节点"时用的
+param_demo:
+  ros__parameters:
+    counter: 0
+    threshold: 0.5
+    mode: demo
+    verbose: true
+    frame_id: map
+
+# ---- 通配符示例（本文件未启用，仅作说明）----
+# 想在**所有**节点上统一设一个参数（例如日志级别、use_sim_time）时：
+# /**:
+#   ros__parameters:
+#     use_sim_time: false

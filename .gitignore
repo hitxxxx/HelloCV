@@ -15,3 +15,13 @@ venv/
 # 运行产物
 decisions*.jsonl
 build/
+
+# ROS2 / colcon 构建产物（可由 colcon build 重新生成）
+install/
+log/
+ros2/ros2_ws/build/
+ros2/ros2_ws/install/
+ros2/ros2_ws/log/
+
+# verify_stack.sh 生成的报告（含时间戳，属于本地产物）
+ros2/docs/verify_report_*.txt
