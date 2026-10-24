@@ -5,7 +5,7 @@
   1. parameters=[字典A, 字典B] —— **列表里后面的覆盖前面的**。
      所以"团队默认值写在前、现场要改的写在后"，优先级关系一眼可见。
      （这里不用 YAML 文件，是因为节点带命名空间后，YAML 的 key 必须写成
-       /robot1/param_demo 这种全限定名才会命中——初学者最容易踩的坑之一。）
+       /robot1/param_demo 这种全限定名才会命中——最容易踩的坑之一。）
   2. PushRosNamespace —— 同一个节点起两份，靠命名空间隔离，
      话题/服务名自动变成 /robot1/param_demo/...，不用手改代码。
   3. 参数类型必须对得上：ParameterValue(..., value_type=int) 用来把

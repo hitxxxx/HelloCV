@@ -98,7 +98,7 @@ bash ../scripts/verify_stack.sh                                      # 一键验
 | ROS2 · 06 TF 与 RViz | 待发布 | [`06-TF与RViz.md`](ros2/docs/yuque/06-TF与RViz.md) |
 | ROS2 · 07 launch 文件 | 待发布 | [`07-launch文件.md`](ros2/docs/yuque/07-launch文件.md) |
 
-> **只想发一篇的话**：用 [`ros2/docs/ROS2学习笔记-初学版.md`](ros2/docs/ROS2学习笔记-初学版.md)
+> **只想发一篇的话**：用 [`ros2/docs/ROS2学习笔记.md`](ros2/docs/ROS2学习笔记.md)
 > （718 行 · 14 张图 · 34 段代码，一篇讲完"装环境 → 第一个节点 → 话题/QoS → 服务 → 参数 → TF/RViz → launch → 生命周期"，
 > 外加 8 个真机踩坑表和复现步骤）。想看得更细，另有合并全量版
 > [`ros2/docs/ROS2学习笔记-全一篇.md`](ros2/docs/ROS2学习笔记-全一篇.md)（2536 行 · 17 张图）。
