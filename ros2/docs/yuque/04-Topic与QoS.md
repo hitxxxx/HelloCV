@@ -87,7 +87,7 @@ float32 confidence       # 置信度 [0,1]
 
 ## 3. QoS：把"可靠性"变成可调参数
 
-![QoS 策略对照](../figures/fig-qos.png)
+![QoS 策略对照](https://cdn.jsdelivr.net/gh/hitxxxx/HelloCV@main/ros2/docs/figures/fig-qos.png)
 
 > 图 1：QoS 六个策略、默认值、以及 HelloCV 的选择（发布到语雀时上传 `docs/figures/fig-qos.png`）
 
@@ -342,12 +342,12 @@ frame_id: camera_link
 **离线复算 + 真机复核**这两步一起做，才算真的把参数契约钉死了：前者负责快速试错，
 后者负责确认整条链路（发布端、DDS、订阅端）没有别的东西在捣乱。
 
-![一条真实的检测结果](../screenshots/04-topic-echo.png)
+![一条真实的检测结果](https://cdn.jsdelivr.net/gh/hitxxxx/HelloCV@main/ros2/docs/screenshots/04-topic-echo.png)
 
 顺带一个 QoS 的实测细节：`ros2 topic info -v /vision/detection` 里两端都是
 `Reliability: RELIABLE / Durability: VOLATILE`（符合 `make_qos()` 的设定），但
 `History (Depth)` 显示 `UNKNOWN` 而不是 `KEEP_LAST (10)`。这是 Fast DDS 上报口径的问题，
-**不能用它判断 depth**——详见 [03 篇](03-命令行工具实操.md) 3.2 节。
+**不能用它判断 depth**——详见 [03 篇](https://github.com/hitxxxx/HelloCV/blob/main/ros2/docs/yuque/03-%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7%E5%AE%9E%E6%93%8D.md) 3.2 节。
 
 ## 6. 验收清单
 

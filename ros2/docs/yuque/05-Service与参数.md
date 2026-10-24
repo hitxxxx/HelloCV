@@ -358,7 +358,7 @@ $ ros2 param set /tracker_node alpha 1.5
 Setting parameter failed: alpha 必须在 (0, 1]，收到 1.500000
 ```
 
-![参数被拒绝的真实提示](../screenshots/05-param.png)
+![参数被拒绝的真实提示](https://cdn.jsdelivr.net/gh/hitxxxx/HelloCV@main/ros2/docs/screenshots/05-param.png)
 
 三点体会：
 

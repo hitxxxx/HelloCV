@@ -84,23 +84,27 @@ bash ../scripts/verify_stack.sh                                      # 一键验
 
 ## 语雀笔记汇总
 
-| 笔记 | 链接 |
-| --- | --- |
-| Linux 学习与实践记录 | <https://www.yuque.com/g/yuqueyonghu-8qsy6m/vkceqs/collaborator/join?token=agDjvvPviBf3dKcU> |
-| 《git traning》 | <https://www.yuque.com/yuqueyonghu-8qsy6m/dgvebc/> |
-| LLM 实践任务：决策网关实现笔记 | <https://www.yuque.com/>（发布后替换为你的链接） |
-| ROS2 · 00 总索引与阅读顺序 | <https://www.yuque.com/>（发布后替换为你的链接） |
-| ROS2 · 01 工作空间与包结构 | <https://www.yuque.com/>（发布后替换为你的链接） |
-| ROS2 · 02 C++ 节点与生命周期 | <https://www.yuque.com/>（发布后替换为你的链接） |
-| ROS2 · 03 命令行工具实操 | <https://www.yuque.com/>（发布后替换为你的链接） |
-| ROS2 · 04 Topic 与 QoS | <https://www.yuque.com/>（发布后替换为你的链接） |
-| ROS2 · 05 Service 与参数 | <https://www.yuque.com/>（发布后替换为你的链接） |
-| ROS2 · 06 TF 与 RViz | <https://www.yuque.com/>（发布后替换为你的链接） |
-| ROS2 · 07 launch 文件 | <https://www.yuque.com/>（发布后替换为你的链接） |
+| 笔记 | 语雀链接（公开可访问） | 仓库内 Markdown（一定可访问） |
+| --- | --- | --- |
+| Linux 学习与实践记录 | <https://www.yuque.com/g/yuqueyonghu-8qsy6m/vkceqs/collaborator/join?token=agDjvvPviBf3dKcU> | — |
+| 《git traning》 | <https://www.yuque.com/yuqueyonghu-8qsy6m/dgvebc/> | — |
+| LLM 实践任务：决策网关实现笔记 | 待发布 | [`llm/docs/yuque-note.md`](llm/docs/yuque-note.md) |
+| ROS2 · 00 总索引与阅读顺序 | 待发布 | [`00-索引与阅读顺序.md`](ros2/docs/yuque/00-索引与阅读顺序.md) |
+| ROS2 · 01 工作空间与包结构 | 待发布 | [`01-工作空间与包结构.md`](ros2/docs/yuque/01-工作空间与包结构.md) |
+| ROS2 · 02 C++ 节点与生命周期 | 待发布 | [`02-C++节点与生命周期.md`](ros2/docs/yuque/02-C++节点与生命周期.md) |
+| ROS2 · 03 命令行工具实操 | 待发布 | [`03-命令行工具实操.md`](ros2/docs/yuque/03-命令行工具实操.md) |
+| ROS2 · 04 Topic 与 QoS | 待发布 | [`04-Topic与QoS.md`](ros2/docs/yuque/04-Topic与QoS.md) |
+| ROS2 · 05 Service 与参数 | 待发布 | [`05-Service与参数.md`](ros2/docs/yuque/05-Service与参数.md) |
+| ROS2 · 06 TF 与 RViz | 待发布 | [`06-TF与RViz.md`](ros2/docs/yuque/06-TF与RViz.md) |
+| ROS2 · 07 launch 文件 | 待发布 | [`07-launch文件.md`](ros2/docs/yuque/07-launch文件.md) |
 
-> 发布到语雀的步骤（每篇都一样）：新建文档 → 粘贴 `ros2/docs/yuque/` 下对应的 `.md` →
-> 把 `docs/figures/*.png` 三张图上传到文中被引用的位置 → 右上角「分享」设为**互联网可见** →
-> 复制链接替换上面表格里的占位。**务必用无痕窗口打开一次确认不用登录也能看**，否则按 0 分算。
+> **笔记已经整理成"打开就能整篇粘贴"的形态**：文中的图片、跨篇链接全部是
+> `raw.githubusercontent.com` / `github.com` 的**绝对地址**，粘进语雀后图片会由语雀自己抓取，
+> 不需要再一张张上传。
+>
+> 发布步骤（每篇都一样）：新建语雀文档 → 把 `ros2/docs/yuque/` 下对应的 `.md` **全文**粘贴 →
+> 右上角「分享」设为**互联网可见** → 复制链接，把上表「待发布」替换掉。
+> **务必用无痕窗口打开一次确认不用登录也能看**，否则按 0 分算。
 
 ## 已知限制
 

@@ -186,7 +186,7 @@ PDF 里会画出 `map → camera_link`、`map → target` 两条边，以及每�
 （camera_link 是 static，会标 `static`；target 会显示 ~30Hz）。这张图是我最推荐的截图——
 它一眼证明"TF 树是完整的、频率是对的"。
 
-![view_frames 打印出的 TF 关系（真实输出）](../screenshots/06-view-frames.png)
+![view_frames 打印出的 TF 关系（真实输出）](https://cdn.jsdelivr.net/gh/hitxxxx/HelloCV@main/ros2/docs/screenshots/06-view-frames.png)
 
 它把节点查到的变换关系直接打印在 `frame_yaml` 里：`camera_link: parent 'map' rate 10000`
 （静态变换，所以 rate 显示成 10000）和 `target: parent 'map' rate 30.304`（30 Hz 动态变换）。
@@ -255,7 +255,7 @@ RViz 里同时看三样东西，就能"读懂"整条流水线：
 2. **TF**：`map` 原点的坐标轴 + `camera_link`（在 z=1.0）+ `target`（在地面附近绕圈）
 3. **TargetMarker**：球在绕圈 → 说明"检测 → 像素转米 → TF → Marker"整条链路是活的
 
-![RViz：Grid + TF 轴 + 红色球（Marker）](../screenshots/06-rviz.png)
+![RViz：Grid + TF 轴 + 红色球（Marker）](https://cdn.jsdelivr.net/gh/hitxxxx/HelloCV@main/ros2/docs/screenshots/06-rviz.png)
 
 这张是在虚拟机里用 Xvfb（软件渲染 `LIBGL_ALWAYS_SOFTWARE=1`）跑出来的：左边 Displays 面板里
 `Global Options → Fixed Frame: map`、`Grid` 和 `TF` 都是绿勾，右边 3D 视图里能看到 `map`
