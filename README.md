@@ -23,7 +23,7 @@ HelloCV/
     └── docs/
         ├── yuque/         # 七篇语雀笔记（Markdown，可直接导入）
         ├── figures/       # 三张示意图
-        └── screenshots/   # 运行截图（待补，清单见 README）
+        └── screenshots/   # 12 张真机运行截图 + 清单
 ```
 
 ## 第二次任务 · LLM：石头剪刀布决策网关
@@ -76,9 +76,9 @@ bash ../scripts/verify_stack.sh                                      # 一键验
 
 ## 环境与工具链记录
 
-- ROS2：目标环境 Ubuntu 22.04 + **Humble**（安装与验证步骤见 [`ros2/README.md`](ros2/README.md)，
+- ROS2：Ubuntu 22.04.5 + **Humble**（安装与验证步骤见 [`ros2/README.md`](ros2/README.md)，
   Jazzy 兼容性说明见 [该文"兼容性"一节](ros2/README.md#兼容性jazzy--ubuntu-2404)）；
-  本机是 Windows，**没有装 ROS2**，见文末「已知限制」
+  编译与运行都在虚拟机里真机完成，截图见 [`ros2/docs/screenshots/`](ros2/docs/screenshots/)
 - 基础工具：`sudo apt install nmap ssh git ...`
 - Node.js 与 PM2：`sudo apt install nodejs npm` ...
 
@@ -104,9 +104,12 @@ bash ../scripts/verify_stack.sh                                      # 一键验
 
 ## 已知限制
 
-第三次任务（ROS2）的代码是在一台**没有 ROS2 环境**的 Windows 机器上写的（无 WSL / Docker / 编译器），
-所以 `colcon build` 与节点运行**没有实测**，笔记里的终端输出标注为"预期输出"，截图位置留了占位与复现命令。
-能离线验证的部分已经跑过：8 个 gtest 用例的期望值用 `ros2/scripts/verify_algorithm.py` 复算全过，
-`ros2/scripts/simulate_camera.py` 复现了"合成图 + 检测"的全流程并抓到一个真 bug（亮斑面积 185 < `min_area` 200，
-默认参数下检测不到目标），复盘见 [`ros2/docs/yuque/04-Topic与QoS.md`](ros2/docs/yuque/04-Topic与QoS.md) 第 5 节。
-补证方式见 [`ros2/docs/screenshots/README.md`](ros2/docs/screenshots/README.md) 与 `ros2/scripts/verify_stack.sh`。
+第三次任务（ROS2）的代码在 **Ubuntu 22.04.5 + ROS 2 Humble** 的虚拟机里真机编译、真机运行过：
+`colcon build` 两个包通过、`colcon test` 9 个用例全绿、`ros2 pkg executables` 正好 7 行、
+端到端 30 Hz、TF 与 RViz 都正常出图。12 张截图在 [`ros2/docs/screenshots/`](ros2/docs/screenshots/)，
+原始终端记录在 [`ros2/docs/verify-transcript.txt`](ros2/docs/verify-transcript.txt)。
+
+编译和运行一共暴露了 8 个真问题（都写进了对应笔记的"真机踩坑"小节），其中两个值得一提：
+亮斑第一版用高斯，阈值 180 只圈住 7.7 px、面积 185 < `min_area` 200，**默认参数下检测不到目标还不报错**；
+`tracker_node` 第一版只 `declare_parameter` 不接回调，`ros2 param set` 显示成功但节点内部仍是旧值。
+只在一套环境（Humble + 默认 RMW）上验证过，换环境请重跑 `ros2/scripts/verify_stack.sh`。

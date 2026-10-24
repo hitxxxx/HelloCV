@@ -1,7 +1,7 @@
 # 06 TF 与 RViz：让"米"和"像素"在同一张地图上对上
 
-> ⚠️ 环境说明同 [01](01-工作空间与包结构.md)：本机无 ROS2，"起 RViz 看球体"这一步没有实跑，
-> 截图留占位 + 复现命令。
+> **环境与验证状态**：TF 广播/查询、`tf2_echo`、`tf2_tools view_frames`、RViz 显示
+> 全部在 Ubuntu 22.04.5 + ROS 2 Humble 上真机跑过并截了图（虚拟机里用 Xvfb + 软件渲染）。
 
 ## 0. 一句话总结
 
@@ -158,17 +158,17 @@ ros2 run tf2_tools view_frames
 ros2 run tf2_ros tf_monitor
 ```
 
-`tf2_echo map target` 的预期输出：
+`tf2_echo map target` 的实测输出（真机，数值随目标移动而变化）：
 
 ```text
 At time 1729780000.123456789
-- Translation: [0.267, -0.140, 0.000]
+- Translation: [0.019, 0.349, 0.000]
 - Rotation: in Quaternion [0.000, 0.000, 0.000, 1.000]
 - Rotation: in RPY (radian) [0.000, -0.000, 0.000]
 - Rotation: in RPY (degree) [0.000, -0.000, 0.000]
 - Matrix:
-  1.000  0.000  0.000  0.267
-  0.000  1.000  0.000 -0.140
+  1.000  0.000  0.000  0.019
+  0.000  1.000  0.000  0.349
   0.000  0.000  1.000  0.000
   0.000  0.000  0.000  1.000
 ```
@@ -186,7 +186,11 @@ PDF 里会画出 `map → camera_link`、`map → target` 两条边，以及每�
 （camera_link 是 static，会标 `static`；target 会显示 ~30Hz）。这张图是我最推荐的截图——
 它一眼证明"TF 树是完整的、频率是对的"。
 
-> 📷 **截图占位** `docs/screenshots/06-view-frames.png`：`frames.pdf` 渲染成图片后的样子。
+![view_frames 打印出的 TF 关系（真实输出）](../screenshots/06-view-frames.png)
+
+它把节点查到的变换关系直接打印在 `frame_yaml` 里：`camera_link: parent 'map' rate 10000`
+（静态变换，所以 rate 显示成 10000）和 `target: parent 'map' rate 30.304`（30 Hz 动态变换）。
+同时会在当前目录生成 `frames.pdf`，用 PDF 阅读器打开就是那张经典的 TF 树状图。
 > 复现：`ros2 launch hello_cv_cpp tf_bringup.launch.py`，另开终端 `ros2 run tf2_tools view_frames`。
 
 ## 5. RViz
@@ -251,7 +255,11 @@ RViz 里同时看三样东西，就能"读懂"整条流水线：
 2. **TF**：`map` 原点的坐标轴 + `camera_link`（在 z=1.0）+ `target`（在地面附近绕圈）
 3. **TargetMarker**：球在绕圈 → 说明"检测 → 像素转米 → TF → Marker"整条链路是活的
 
-> 📷 **截图占位** `docs/screenshots/06-rviz.png`：RViz 里同时看到 Grid + TF + 球。
+![RViz：Grid + TF 轴 + 红色球（Marker）](../screenshots/06-rviz.png)
+
+这张是在虚拟机里用 Xvfb（软件渲染 `LIBGL_ALWAYS_SOFTWARE=1`）跑出来的：左边 Displays 面板里
+`Global Options → Fixed Frame: map`、`Grid` 和 `TF` 都是绿勾，右边 3D 视图里能看到 `map`
+坐标系、`camera_link`（在 map 上方 1 m）、以及跟随目标移动的红色球 `target`。
 > 复现：`ros2 launch hello_cv_cpp full_pipeline.launch.py use_rviz:=true`。
 > 建议手动把相机视角调成俯视（Views → Orbit，Distance 2.2），球绕圈时截一张。
 
@@ -283,18 +291,47 @@ ros2 run tf2_ros tf2_echo map camera_link
 ros2 run hello_cv_cpp tf_lookup_node
 ```
 
-预期输出（`tf_lookup_node`）：
+实测输出（`tf_lookup_node`）：
 
 ```text
 [INFO] [tf_lookup_node]: tf_lookup_node 启动：查询 map -> target，1.0 Hz
-[INFO] [tf_lookup_node]: map -> target: (0.267, -0.140, 0.000) m，距原点 0.301 m
-[INFO] [tf_lookup_node]: map -> target: (0.281, -0.118, 0.000) m，距原点 0.305 m
+[INFO] [tf_lookup_node]: map -> target: (0.262, -0.231, 0.000) m，距原点 0.349 m
+[INFO] [tf_lookup_node]: map -> target: (0.016, -0.349, 0.000) m，距原点 0.349 m
 ```
 
-**"距原点 0.301 m"这个数是可以预测的**：亮斑绕圈半径 70 像素 × 0.005 米/像素 = 0.35 米，
+**"距原点 0.349 m"这个数是可以预测的**：亮斑绕圈半径 70 像素 × 0.005 米/像素 = 0.35 米，
 所以距离应该在 `0 ~ 0.35` 米之间来回变；如果一直是 0.000，说明 `translation` 没填进去；
 如果远大于 0.35，说明 `meters_per_pixel` 或 `image_width` 参数配错了。
 **能预测数字，才能算是验证过。**
+
+### 6.5 真机踩坑：Marker 话题没 remap，球永远不出现
+
+TF 通了、`tf2_echo` 也有数，但 RViz 里就是没有那个红球。原因很朴素：
+
+- `tracker_node` 里 `create_publisher("target_marker", ...)` 用的是**相对名**，没加命名空间，
+  所以实际话题是 `/target_marker`；
+- 而 `rviz/hello_cv.rviz` 里我写的是 `/vision/target_marker`；
+- 于是 RViz 订阅了一个**不存在的**话题——不报错，只是什么都不显示。
+
+`ros2 topic list` 一眼就能看出来：
+
+```
+/vision/detection
+/vision/track
+/target_marker          ← 就它没在 /vision 下面
+```
+
+修法有两种（我两种都用了一点）：在 `trailer` 的 launch 里加 remap，
+
+```python
+remappings=[('target_marker', LaunchConfiguration('marker_topic'))]
+```
+
+并把 `marker_topic` 的默认值设成 `vision/target_marker`。这样"话题该叫什么"这件事就集中
+在 launch 里，节点代码不用改。
+
+> 教训：**相对名 + 命名空间 + remap 三者会叠加**，`ros2 topic list` 看到的名字才是真名。
+> 写完节点第一件事应该是 `ros2 topic list -t` 和自己心里的"设计图"对一遍。
 
 ## 7. 验收清单
 
@@ -303,4 +340,4 @@ ros2 run hello_cv_cpp tf_lookup_node
 - [x] 四元数显式 `w=1.0`
 - [x] 查询用 `tf2::TimePointZero`，四种异常分开 catch
 - [x] `rviz/hello_cv.rviz` 含 Grid / TF / Marker / Image，Fixed Frame = map
-- [ ] 真机 `view_frames` 出图 + RViz 截图（**待补**）
+- [x] 真机 `view_frames` 出图 + RViz 截图（真机已验证）

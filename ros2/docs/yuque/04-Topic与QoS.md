@@ -1,7 +1,8 @@
 # 04 Topic 与 QoS：为什么"话题有数据，订阅者却没反应"
 
-> ⚠️ 环境说明同 [01](01-工作空间与包结构.md)：代码本机可读可测（纯算法部分有 8 个 gtest 用例），
-> 但"起节点看数据"这一步没有实跑，截图留占位。
+> **环境与验证状态**：纯算法部分有 8 个 gtest（真机 `colcon test` 全绿），
+> 数据链路在 Ubuntu 22.04.5 + ROS 2 Humble 上真机跑过，实测 `area: 1015`、`confidence: 0.995`、
+> 30 Hz，与离线复算一致。QoS 两端在 `topic info -v` 里核对过（文中有截图）。
 
 ## 0. 一句话总结
 
@@ -324,6 +325,30 @@ ros2 param set /detector_node intensity_threshold 240   # area 变小，但 cx/c
 - **"能编译"和"能工作"是两件无关的事**。这条我以前只是听说，这次是自己撞上的。
 
 
+## 5.6 真机复核：离线复算的数字对上了
+
+修完亮斑形状之后，真机跑出来的 `ros2 topic echo /vision/detection --once --no-arr`：
+
+```
+found: true
+cx: 175.87290954589844
+cy: 51.80393981933594
+area: 1015.0
+confidence: 0.9950980544090271
+frame_id: camera_link
+```
+
+`area: 1015` 落在离线脚本预测的 1011~1023 区间里，`confidence = 1015/1020 ≈ 0.995`。
+**离线复算 + 真机复核**这两步一起做，才算真的把参数契约钉死了：前者负责快速试错，
+后者负责确认整条链路（发布端、DDS、订阅端）没有别的东西在捣乱。
+
+![一条真实的检测结果](../screenshots/04-topic-echo.png)
+
+顺带一个 QoS 的实测细节：`ros2 topic info -v /vision/detection` 里两端都是
+`Reliability: RELIABLE / Durability: VOLATILE`（符合 `make_qos()` 的设定），但
+`History (Depth)` 显示 `UNKNOWN` 而不是 `KEEP_LAST (10)`。这是 Fast DDS 上报口径的问题，
+**不能用它判断 depth**——详见 [03 篇](03-命令行工具实操.md) 3.2 节。
+
 ## 6. 验收清单
 
 - [x] 自定义 `Detection.msg` 带 `std_msgs/Header`
@@ -334,4 +359,4 @@ ros2 param set /detector_node intensity_threshold 240   # area 变小，但 cx/c
 - [x] 8 个用例的**期望值**用 Python 复算一遍全过（`scripts/verify_algorithm.py`，26 条断言）
 - [x] 亮斑形状改成"平台 + 过渡带"，`expected_area` 与阈值实测值对齐
       （`scripts/simulate_camera.py`：12/12 帧检测到、质心误差 0.04 px、面积 1018±6）
-- [ ] 真机 `ros2 topic info -v` 两侧 QoS 一致（**待补**）
+- [x] 真机 `ros2 topic info -v` 两侧 QoS 一致（真机已验证）

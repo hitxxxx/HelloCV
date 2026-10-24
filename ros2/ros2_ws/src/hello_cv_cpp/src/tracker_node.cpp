@@ -28,6 +28,53 @@ TrackerNode::TrackerNode(const rclcpp::NodeOptions & options)
 
   ema_.alpha = alpha_;
 
+  // ---- 参数热更新 ----
+  // 只有 declare + get 的话，`ros2 param set` 会返回成功但节点内部用的还是旧值——
+  // 于是 `param get` 显示 0.5、实际滤波还是 0.35，这是最难查的一类"假生效"。
+  // 这里显式接一个回调：先全量校验，任何一项不合法就整批拒绝，最后才落地。
+  param_cb_ = this->add_on_set_parameters_callback(
+    [this](const std::vector<rclcpp::Parameter> & params) {
+      rcl_interfaces::msg::SetParametersResult result;
+      result.successful = true;
+
+      double new_alpha = alpha_;
+      double new_mpp = meters_per_pixel_;
+
+      for (const auto & p : params) {
+        if (p.get_name() == "alpha") {
+          if (p.get_type() != rclcpp::ParameterType::PARAMETER_DOUBLE) {
+            result.successful = false;
+            result.reason = "alpha 必须是 double";
+            return result;
+          }
+          new_alpha = p.as_double();
+          if (new_alpha <= 0.0 || new_alpha > 1.0) {
+            result.successful = false;
+            result.reason = "alpha 必须在 (0, 1]，收到 " + std::to_string(new_alpha);
+            return result;
+          }
+        } else if (p.get_name() == "meters_per_pixel") {
+          if (p.get_type() != rclcpp::ParameterType::PARAMETER_DOUBLE) {
+            result.successful = false;
+            result.reason = "meters_per_pixel 必须是 double";
+            return result;
+          }
+          new_mpp = p.as_double();
+          if (new_mpp <= 0.0) {
+            result.successful = false;
+            result.reason = "meters_per_pixel 必须 > 0，收到 " + std::to_string(new_mpp);
+            return result;
+          }
+        }
+      }
+
+      // 校验全过了才写回成员变量，保证"失败即全不变"
+      alpha_ = new_alpha;
+      ema_.alpha = alpha_;
+      meters_per_pixel_ = new_mpp;
+      return result;
+    });
+
   detection_sub_ = this->create_subscription<hello_cv_interfaces::msg::Detection>(
     "detection", rclcpp::QoS(10),
     std::bind(&TrackerNode::on_detection, this, std::placeholders::_1));

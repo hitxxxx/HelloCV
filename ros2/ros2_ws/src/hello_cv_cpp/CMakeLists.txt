@@ -23,6 +23,12 @@ find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(hello_cv_interfaces REQUIRED)
 
+# 所有目标都要能找到 include/hello_cv_cpp/*.hpp。
+# 链接了 hello_cv_vision 的目标会从它的 PUBLIC BUILD_INTERFACE 自动继承这个路径，
+# 但 camera_node / tf_lookup_node / param_demo_node 这些不链接算法库，
+# 少了这一行就会报 "fatal error: hello_cv_cpp/camera_node.hpp: 没有那个文件或目录"。
+include_directories(include)
+
 # ---------- 2. 纯算法静态库 ----------
 # 抽成库的目的：detector 和 test 都能链接它，而它本身完全不依赖 ROS。
 add_library(hello_cv_vision SHARED src/vision_utils.cpp)
@@ -59,7 +65,6 @@ ament_target_dependencies(mode_service_client rclcpp hello_cv_interfaces)
 
 # ---------- 4. 安装 ----------
 install(TARGETS
-  hello_cv_vision
   camera_node
   detector_node
   tracker_node
@@ -68,6 +73,15 @@ install(TARGETS
   lifecycle_mission_node
   mode_service_client
   DESTINATION lib/${PROJECT_NAME}
+)
+
+# 算法库单独装到 lib/ 而不是 lib/${PROJECT_NAME}/：
+# `ros2 pkg executables` 会把 lib/${PROJECT_NAME}/ 下的每个文件都当成"可执行文件"列出来，
+# 放进去就会多出一行 libhello_cv_vision.so（实测过，见笔记 01 的踩坑）。
+install(TARGETS hello_cv_vision
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
 )
 
 # launch / config / rviz 必须 install，否则 `ros2 launch` 在别的目录下找不到它们。

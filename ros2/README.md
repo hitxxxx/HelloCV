@@ -38,7 +38,7 @@ ros2/
 └── docs/
     ├── yuque/                                 # 七篇笔记（Markdown，可直接导入语雀）
     ├── figures/                               # 三张示意图 PNG
-    └── screenshots/                           # 运行截图（待补，清单见 README）
+    └── screenshots/                           # 12 张真机运行截图（清单见 README）
 ```
 
 ## 环境配置
@@ -273,9 +273,10 @@ python3 scripts/check_braces.py          # 16 个文件全部配平
 
 ## 已知限制
 
-1. **没有在真机 ROS2 上跑过**。开发环境没有 WSL/Docker/编译器（见 `docs/yuque/00-索引与阅读顺序.md`
-   末尾的说明），所以 `colcon build` 与节点运行都未实测；笔记里的终端输出标注为"预期输出"。
-   补证方法：跑 `scripts/verify_stack.sh`，或按 `docs/screenshots/README.md` 拍照。
+1. **只在一套环境上验证过**：Ubuntu 22.04.5 + ROS 2 Humble（虚拟机，`~/ros2_ws`）。
+   实测结果：`colcon build` 两个包通过、`colcon test` 9 个用例全绿、`ros2 pkg executables`
+   正好 7 行、端到端 30 Hz、TF 与 RViz 正常；截图在 `docs/screenshots/`，原始终端记录在
+   `docs/verify-transcript.txt`。换发行版（如 Jazzy）或换 RMW 仍需重跑 `scripts/verify_stack.sh`。
 2. `find_bright_blob` 只适用于**单目标**场景（多目标会算合成质心）。
 3. `TimerAction(2.0)` 是"错峰启动"的缓解措施，不是"等就绪"的严格方案。
 4. `camera_node` 与 `tracker_node` 都有一个叫 `frame_id` 的参数，含义不同（图像帧名 vs TF 父坐标系）——

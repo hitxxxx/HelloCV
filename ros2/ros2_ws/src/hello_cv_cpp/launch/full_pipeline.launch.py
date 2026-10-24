@@ -35,6 +35,9 @@ def generate_launch_description() -> LaunchDescription:
         DeclareLaunchArgument('image_topic', default_value='camera/image_raw'),
         DeclareLaunchArgument('detection_topic', default_value='vision/detection'),
         DeclareLaunchArgument('track_topic', default_value='vision/track'),
+        # Marker 也要 remap：rviz/hello_cv.rviz 里写的是 /vision/target_marker，
+        # 不 remap 的话节点发的是 /target_marker，RViz 里那个球永远不出现（实测踩到过）。
+        DeclareLaunchArgument('marker_topic', default_value='vision/target_marker'),
 
         # ---------------- 相机：合成图像源 ----------------
         Node(
@@ -76,6 +79,7 @@ def generate_launch_description() -> LaunchDescription:
             remappings=[
                 ('detection', LaunchConfiguration('detection_topic')),
                 ('track', LaunchConfiguration('track_topic')),
+                ('target_marker', LaunchConfiguration('marker_topic')),
             ],
             arguments=['--ros-args', '--log-level', LaunchConfiguration('log_level')],
         ),

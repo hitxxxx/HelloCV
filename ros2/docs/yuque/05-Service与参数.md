@@ -1,6 +1,8 @@
 # 05 Service 与参数服务器：把"操作"和"配置"分开
 
-> ⚠️ 环境说明同 [01](01-工作空间与包结构.md)：本机无 ROS2，终端输出标注为"预期"。
+> **环境与验证状态**：服务与参数都在 Ubuntu 22.04.5 + ROS 2 Humble 上真机验证过，
+> 包括"非法值被拒绝"这条路径。真机暴露的一个严重设计缺陷（参数 `set` 成功但节点不生效）
+> 见文末「真机踩坑」。
 
 ## 0. 一句话总结
 
@@ -107,20 +109,21 @@ int main(int argc, char ** argv)
    `rclcpp::exceptions::RCLError`（"failed to send request"），而不是"返回一个失败的 future"。
 2. **`spin_until_future_complete` 要带超时。** 不带超时的版本在服务端崩溃时会**永远阻塞**，
    一个"脚本"变成"卡住的进程"。
-3. **退出码要有约定**：`0` 成功、`1` 服务返回失败、`2` 服务不存在、`3` 响应超时。
+3. **退出码要有约定**：`0` 成功、`1` 服务不存在（`wait_for_service` 超时）、`2` 服务端拒绝（`success=false`）、`3` 调用超时或被中断。
    这让 shell 里能用 `if ros2 run ...; then` 判断，而不是去 grep 日志。
 
-预期输出：
+实测输出（真机）：
 
 ```text
 $ ros2 run hello_cv_cpp mode_service_client ema 0.2
-[INFO] [mode_service_client]: success=true message=模式已切换为 ema
+[INFO] [1792842874.076388592] [mode_service_client]: 切换成功：已切换为 ema，alpha=0.200000
 
 $ ros2 run hello_cv_cpp mode_service_client bogus 0.2
-[INFO] [mode_service_client]: success=false message=mode 只接受 raw 或 ema，收到: bogus
-$ echo $?
-1
+[WARN] [1792842874.368351518] [mode_service_client]: 服务端拒绝了请求：未知模式 'bogus'，只支持 raw / ema
+[ros2run]: Process exited with failure 2
 ```
+
+（`ros2 run` 会把非 0 的退出码翻译成 `Process exited with failure N`，所以 N 就是约定里的那个数。）
 
 ## 2. 同步 vs 异步：什么时候用哪个
 
@@ -305,6 +308,66 @@ ParamDemoNode::on_param_update(const std::vector<rclcpp::Parameter> & params)
 改阈值只是一个数字，所以是参数。我把这条当成一条纪律：**不要用服务去改配置，也不要
 用参数去触发动作**（后者会导致"参数被设了但什么也没发生"的怪异行为）。
 
+## 4.5 真机踩坑：参数 `set` 成功 ≠ 生效
+
+这是这次最值得写的一条。`tracker_node` 第一版是这样读参数的：
+
+```cpp
+alpha_ = this->declare_parameter<double>("alpha", 0.35);
+```
+
+然后 `ros2 param set /tracker_node alpha 0.5` 返回 `Set parameter successful`，
+`ros2 param get /tracker_node alpha` 也真的显示 0.5——但节点的滤波系数**一直是 0.35**，
+因为它只在构造函数里读过一次 `alpha_`。
+
+也就是说：**参数服务器里的值和节点内部用的值可以是两份，而 CLI 只告诉你前者。**
+这种"假生效"比报错难查一百倍，因为所有命令都显示成功。
+
+修法是显式注册更新回调，并在回调里做两件事：**先全量校验，再落地**。
+
+```cpp
+param_cb_ = this->add_on_set_parameters_callback(
+  [this](const std::vector<rclcpp::Parameter> & params) {
+    rcl_interfaces::msg::SetParametersResult result;
+    result.successful = true;
+
+    double new_alpha = alpha_;          // 先算到临时变量里
+    for (const auto & p : params) {
+      if (p.get_name() == "alpha") {
+        new_alpha = p.as_double();
+        if (new_alpha <= 0.0 || new_alpha > 1.0) {
+          result.successful = false;
+          result.reason = "alpha 必须在 (0, 1]，收到 " + std::to_string(new_alpha);
+          return result;                // 直接拒绝，一个都不写
+        }
+      }
+    }
+    alpha_ = new_alpha;                 // 全部校验通过才落地
+    ema_.alpha = alpha_;
+    return result;
+  });
+```
+
+改完之后真机行为变成：
+
+```bash
+$ ros2 param set /tracker_node alpha 0.5
+Set parameter successful
+
+$ ros2 param set /tracker_node alpha 1.5
+Setting parameter failed: alpha 必须在 (0, 1]，收到 1.500000
+```
+
+![参数被拒绝的真实提示](../screenshots/05-param.png)
+
+三点体会：
+
+1. **回调要存句柄**（`param_cb_`），否则回调对象离开作用域就被销毁，等于没注册；
+2. **"先全量校验再落地"**：一批参数里只要有一个非法，就整批拒绝，不要写一半——否则会出现
+   节点处于"一半新一半旧"的中间态；
+3. 在回调里**不要再调用 `set_parameter`**（会重入同一把参数锁）。要联动修改就用临时变量
+   算完再一次性赋值，这也正是上面写法里 `new_alpha` 存在的原因。
+
 ## 5. 验收清单
 
 - [x] `.srv` 定义带 `---` 分隔，请求/响应语义清晰
@@ -313,4 +376,4 @@ ParamDemoNode::on_param_update(const std::vector<rclcpp::Parameter> & params)
 - [x] 参数 `declare_parameter` 带默认值与类型
 - [x] 参数校验回调"全量校验再落地"，不在回调里写参数
 - [x] `params.yaml` 三层结构 + 中文注释说明 `frame_id` 的两种含义
-- [ ] 真机 `ros2 service call` / `ros2 param set` 全流程（**待补**）
+- [x] 真机 `ros2 service call` / `ros2 param set` 全流程（真机已验证）

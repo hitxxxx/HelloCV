@@ -1,7 +1,8 @@
 # 07 launch 文件：把"一串命令"写成"一份声明"
 
-> ⚠️ 环境说明同 [01](01-工作空间与包结构.md)：launch 文件本机可读、语法按 Humble 文档核对，
-> 但 `ros2 launch` 没有实跑，截图留占位。
+> **环境与验证状态**：五个 launch 文件都在 Ubuntu 22.04.5 + ROS 2 Humble 上真机启动过，
+> 参数覆盖、remap、生命周期事件链、`TimerAction` 错峰都是实测行为。真机发现的一个 remap
+> 漏洞（Marker 话题没改到 `/vision/` 下）见文末「真机踩坑」。
 
 ## 0. 一句话总结
 
@@ -284,6 +285,31 @@ $ ros2 launch hello_cv_cpp camera_detector.launch.py --print
 
 看到 `-p fps:=30.0` 里的 `.0`，就知道 `ParameterValue(value_type=float)` 起作用了。
 
+## 8.5 真机踩坑：remap 漏了一个话题
+
+`full_pipeline.launch.py` 第一版只 remap 了 `image_raw`、`detection`、`track`，漏了
+`target_marker`。结果 `ros2 topic list` 里出现的是 `/target_marker`，而 RViz 配置里写的是
+`/vision/target_marker`——RViz 静默地什么都不显示。
+
+修法就是把"这个话题叫什么"也变成一个 launch 参数：
+
+```python
+DeclareLaunchArgument('marker_topic', default_value='vision/target_marker'),
+...
+Node(
+    package='hello_cv_cpp', executable='tracker_node',
+    remappings=[
+        ('detection', LaunchConfiguration('detection_topic')),
+        ('track', LaunchConfiguration('track_topic')),
+        ('target_marker', LaunchConfiguration('marker_topic')),   # ← 补上这条
+    ],
+),
+```
+
+> 教训：**只要节点里用的是相对话题名，它出现在哪个命名空间/什么名字就是 launch 决定的**，
+> 所以 launch 里的 remap 列表应该和节点里的 `create_publisher` 调用一一对应。
+> 判断有没有漏的办法：`ros2 topic list -t` 打出来，和 launch 文件里的 remap 数一遍。
+
 ## 8. 验收清单
 
 - [x] 五个 launch 文件，各自有明确的演示目标
@@ -292,4 +318,4 @@ $ ros2 launch hello_cv_cpp camera_detector.launch.py --print
 - [x] `PushRosNamespace` + 参数字典合并（不依赖 YAML 全限定名）
 - [x] 受管节点用 `OnStateTransition` 串联 configure → activate
 - [x] `IncludeLaunchDescription` + `TimerAction`（并注明 TimerAction 是缓解措施）
-- [ ] 真机 `ros2 launch` 全流程（**待补**）
+- [x] 真机 `ros2 launch` 全流程（真机已验证）

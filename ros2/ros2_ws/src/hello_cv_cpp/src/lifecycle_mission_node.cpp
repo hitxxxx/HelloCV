@@ -1,5 +1,10 @@
 #include "hello_cv_cpp/lifecycle_mission_node.hpp"
 
+// rclcpp_lifecycle/lifecycle_node.hpp 只带 LifecycleNode 本身，
+// rclcpp::init / spin / shutdown 仍然来自 rclcpp/rclcpp.hpp——少了这一行会报
+// "‘spin’ is not a member of ‘rclcpp’"。
+#include <rclcpp/rclcpp.hpp>
+
 #include <chrono>
 #include <functional>
 #include <memory>
@@ -91,7 +96,11 @@ int main(int argc, char ** argv)
   rclcpp::init(argc, argv);
   // 默认构造用 rclcpp::NodeOptions()，所以 launch 里的参数全部从命令行/参数文件注入，
   // 节点内部不需要再写一遍参数——这也是为什么这里这么短。
-  rclcpp::spin(std::make_shared<hello_cv::LifecycleMissionNode>());
+  auto node = std::make_shared<hello_cv::LifecycleMissionNode>();
+  // 注意：rclcpp_lifecycle::LifecycleNode **不是** rclcpp::Node 的子类，
+  // 所以 rclcpp::spin(node) 匹配不上（两个重载分别要 NodeBaseInterface::SharedPtr
+  // 和 rclcpp::Node::SharedPtr），必须显式交出 base interface。
+  rclcpp::spin(node->get_node_base_interface());
   rclcpp::shutdown();
   return 0;
 }

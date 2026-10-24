@@ -1,0 +1,259 @@
+# 真机实录（原样导出的终端输出）
+
+> 这份文件是 `scripts/guest_transcript.sh` 在 Ubuntu 22.04 + ROS 2 Humble 上的原始输出，
+> 未经手工修改。笔记 03 里引用的每一段输出都能在这里找到。
+> 采集时间：2026-10-24，工作空间 `~/ros2_ws`。
+
+```
+############ 0. 环境
+
+$ ros2 --version-ish
+/home/gongwei/ros2_ws/install/hello_cv_cpp
+
+$ printenv ROS_DISTRO
+humble
+
+############ 1. 编译产物
+
+$ ros2 pkg executables hello_cv_cpp
+hello_cv_cpp camera_node
+hello_cv_cpp detector_node
+hello_cv_cpp lifecycle_mission_node
+hello_cv_cpp mode_service_client
+hello_cv_cpp param_demo_node
+hello_cv_cpp tf_lookup_node
+hello_cv_cpp tracker_node
+
+$ ros2 interface show hello_cv_interfaces/msg/Detection
+# 一帧图像里的目标检测结果（自定义消息）
+# 约定：cx/cy 使用像素坐标，原点在图像左上角，x 向右、y 向下。
+
+std_msgs/Header header      # 时间戳 + 坐标系（这里复用相机节点的 frame_id）
+	builtin_interfaces/Time stamp
+		int32 sec
+		uint32 nanosec
+	string frame_id
+
+bool  found                 # 本帧是否检测到目标
+float32 cx                  # 目标质心 x（像素）
+float32 cy                  # 目标质心 y（像素）
+float32 area                # 目标像素面积（像素个数）
+float32 confidence          # 置信度 0~1，用「面积 / 期望面积」粗略估计
+
+############ 2. 起流水线（后台），等 12 秒
+
+$ ros2 node list
+/camera_node
+/detector_node
+/tf_lookup_node
+/tracker_node
+
+$ ros2 node info /camera_node
+/camera_node
+  Subscribers:
+    /parameter_events: rcl_interfaces/msg/ParameterEvent
+  Publishers:
+    /camera/image_raw: sensor_msgs/msg/Image
+    /parameter_events: rcl_interfaces/msg/ParameterEvent
+    /rosout: rcl_interfaces/msg/Log
+  Service Servers:
+    /camera_node/describe_parameters: rcl_interfaces/srv/DescribeParameters
+    /camera_node/get_parameter_types: rcl_interfaces/srv/GetParameterTypes
+    /camera_node/get_parameters: rcl_interfaces/srv/GetParameters
+    /camera_node/list_parameters: rcl_interfaces/srv/ListParameters
+    /camera_node/set_parameters: rcl_interfaces/srv/SetParameters
+    /camera_node/set_parameters_atomically: rcl_interfaces/srv/SetParametersAtomically
+  Service Clients:
+
+  Action Servers:
+
+  Action Clients:
+
+
+############ 3. 话题
+
+$ ros2 topic list -t
+/camera/image_raw [sensor_msgs/msg/Image]
+/parameter_events [rcl_interfaces/msg/ParameterEvent]
+/rosout [rcl_interfaces/msg/Log]
+/tf [tf2_msgs/msg/TFMessage]
+/tf_static [tf2_msgs/msg/TFMessage]
+/vision/detection [hello_cv_interfaces/msg/Detection]
+/vision/target_marker [visualization_msgs/msg/Marker]
+/vision/track [hello_cv_interfaces/msg/Detection]
+
+$ ros2 topic info -v /vision/detection
+Type: hello_cv_interfaces/msg/Detection
+
+Publisher count: 1
+
+Node name: detector_node
+Node namespace: /
+Topic type: hello_cv_interfaces/msg/Detection
+Endpoint type: PUBLISHER
+GID: 01.0f.f1.a8.98.79.76.74.00.00.00.00.00.00.13.03.00.00.00.00.00.00.00.00
+QoS profile:
+  Reliability: RELIABLE
+  History (Depth): UNKNOWN
+  Durability: VOLATILE
+  Lifespan: Infinite
+  Deadline: Infinite
+  Liveliness: AUTOMATIC
+  Liveliness lease duration: Infinite
+
+Subscription count: 1
+
+Node name: tracker_node
+Node namespace: /
+Topic type: hello_cv_interfaces/msg/Detection
+Endpoint type: SUBSCRIPTION
+GID: 01.0f.f1.a8.9a.79.64.79.00.00.00.00.00.00.12.04.00.00.00.00.00.00.00.00
+QoS profile:
+  Reliability: RELIABLE
+  History (Depth): UNKNOWN
+  Durability: VOLATILE
+  Lifespan: Infinite
+  Deadline: Infinite
+  Liveliness: AUTOMATIC
+  Liveliness lease duration: Infinite
+
+
+$ ros2 topic echo /vision/detection --once --no-arr
+header:
+  stamp:
+    sec: 1792842697
+    nanosec: 984350406
+  frame_id: camera_link
+found: true
+cx: 175.87290954589844
+cy: 51.80393981933594
+area: 1015.0
+confidence: 0.9950980544090271
+---
+
+$ timeout 5 ros2 topic hz /camera/image_raw
+	min: 0.031s max: 0.036s std dev: 0.00084s window: 92
+average rate: 30.007
+	min: 0.031s max: 0.036s std dev: 0.00084s window: 123
+
+$ timeout 6 ros2 topic bw /camera/image_raw
+	Message size mean: 0.08 MB min: 0.08 MB max: 0.08 MB
+2.31 MB/s from 90 messages
+	Message size mean: 0.08 MB min: 0.08 MB max: 0.08 MB
+
+############ 4. 服务
+
+$ ros2 service list -t
+/camera_node/describe_parameters [rcl_interfaces/srv/DescribeParameters]
+/camera_node/get_parameter_types [rcl_interfaces/srv/GetParameterTypes]
+/camera_node/get_parameters [rcl_interfaces/srv/GetParameters]
+/camera_node/list_parameters [rcl_interfaces/srv/ListParameters]
+/camera_node/set_parameters [rcl_interfaces/srv/SetParameters]
+/camera_node/set_parameters_atomically [rcl_interfaces/srv/SetParametersAtomically]
+/detector_node/describe_parameters [rcl_interfaces/srv/DescribeParameters]
+/detector_node/get_parameter_types [rcl_interfaces/srv/GetParameterTypes]
+/detector_node/get_parameters [rcl_interfaces/srv/GetParameters]
+/detector_node/list_parameters [rcl_interfaces/srv/ListParameters]
+/detector_node/set_parameters [rcl_interfaces/srv/SetParameters]
+/detector_node/set_parameters_atomically [rcl_interfaces/srv/SetParametersAtomically]
+/set_mode [hello_cv_interfaces/srv/SetTrackingMode]
+/tf_lookup_node/describe_parameters [rcl_interfaces/srv/DescribeParameters]
+/tf_lookup_node/get_parameter_types [rcl_interfaces/srv/GetParameterTypes]
+/tf_lookup_node/get_parameters [rcl_interfaces/srv/GetParameters]
+/tf_lookup_node/list_parameters [rcl_interfaces/srv/ListParameters]
+/tf_lookup_node/set_parameters [rcl_interfaces/srv/SetParameters]
+/tf_lookup_node/set_parameters_atomically [rcl_interfaces/srv/SetParametersAtomically]
+/tracker_node/describe_parameters [rcl_interfaces/srv/DescribeParameters]
+/tracker_node/get_parameter_types [rcl_interfaces/srv/GetParameterTypes]
+/tracker_node/get_parameters [rcl_interfaces/srv/GetParameters]
+/tracker_node/list_parameters [rcl_interfaces/srv/ListParameters]
+/tracker_node/set_parameters [rcl_interfaces/srv/SetParameters]
+/tracker_node/set_parameters_atomically [rcl_interfaces/srv/SetParametersAtomically]
+
+$ ros2 service type /set_mode
+hello_cv_interfaces/srv/SetTrackingMode
+
+$ ros2 service call /set_mode hello_cv_interfaces/srv/SetTrackingMode "{mode: raw}"
+waiting for service to become available...
+requester: making request: hello_cv_interfaces.srv.SetTrackingMode_Request(mode='raw', alpha=0.0)
+
+response:
+hello_cv_interfaces.srv.SetTrackingMode_Response(success=True, message='已切换为 raw（不平滑）')
+
+
+############ 5. 参数
+
+$ ros2 param list /tracker_node
+  alpha
+  frame_id
+  image_height
+  image_width
+  marker_diameter
+  meters_per_pixel
+  mode
+  publish_marker
+  qos_overrides./parameter_events.publisher.depth
+  qos_overrides./parameter_events.publisher.durability
+  qos_overrides./parameter_events.publisher.history
+  qos_overrides./parameter_events.publisher.reliability
+  qos_overrides./tf.publisher.depth
+  qos_overrides./tf.publisher.durability
+  qos_overrides./tf.publisher.history
+  qos_overrides./tf.publisher.reliability
+  target_frame
+  use_sim_time
+  vertical_flip
+
+$ ros2 param get /tracker_node alpha
+Double value is: 0.35
+
+$ ros2 param set /tracker_node alpha 0.5
+Set parameter successful
+
+$ ros2 param get /tracker_node alpha
+Double value is: 0.5
+
+$ ros2 param set /tracker_node alpha 1.5   # 非法值
+Setting parameter failed: alpha 必须在 (0, 1]，收到 1.500000
+
+############ 6. TF
+
+$ timeout 6 ros2 run tf2_ros tf2_echo map target
+- Rotation: in RPY (radian) [0.000, -0.000, 0.000]
+- Rotation: in RPY (degree) [0.000, -0.000, 0.000]
+- Matrix:
+  1.000  0.000  0.000 -0.176
+  0.000  1.000  0.000 -0.302
+  0.000  0.000  1.000  0.000
+  0.000  0.000  0.000  1.000
+[INFO] [1792842726.755990656] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+
+############ 7. 受管节点（另起一个，避免和流水线抢）
+
+$ ros2 lifecycle get /mission_node
+unconfigured [1]
+
+$ ros2 lifecycle set /mission_node configure
+Transitioning successful
+
+$ ros2 lifecycle get /mission_node
+inactive [2]
+
+$ ros2 lifecycle set /mission_node activate
+Transitioning successful
+
+$ ros2 lifecycle get /mission_node
+active [3]
+
+$ ros2 lifecycle set /mission_node deactivate
+Transitioning successful
+
+$ ros2 lifecycle set /mission_node cleanup
+Transitioning successful
+
+$ ros2 lifecycle get /mission_node
+unconfigured [1]
+
+############ 8. 收尾
+done
+```
